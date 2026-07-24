@@ -42,7 +42,7 @@ Commands:
   matrix [path]      Traceability matrix: status, goals, code, tests, warnings
   approve <id>       Transition a requirement's status (--status, default approved)
   gate [paths...]    Block implementation of non-approved requirements (exit 2)
-  skeleton <kind>    Print a schema-valid snippet (req|edge|testCase|stateMachine)
+  skeleton <kind>    Print a schema-valid snippet (--list names every kind)
   migrate [path]     Rewrite a 2.0.1/2.1.0 spec to the current schema version
                      (compact trace edges, RFC-0003; --dry-run to preview)
 

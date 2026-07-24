@@ -38,7 +38,7 @@ rqml <command> [spec.rqml] [options]
   matrix [path]      Traceability matrix: status, goals, code, tests, coverage gaps
   approve <id>       Transition a requirement's status (--status, default approved)
   gate [paths...]    Block implementation of non-approved requirements (exit 2)
-  skeleton <kind>    Print a schema-valid snippet (req | edge | testCase | stateMachine)
+  skeleton <kind>    Print a schema-valid snippet (--list names every kind)
   migrate [path]     Rewrite a 2.0.1/2.1.0 spec to the current schema version
                      (compact trace edges, RFC-0003; --dry-run to preview)
 ```
@@ -104,11 +104,20 @@ rqml check                                             # the gate — must exit 
   `--refresh <edge-id>` re-blesses one artifact's baseline without re-stating
   the URI (see [Drift baselines](#drift-baselines)).
 
-`skeleton` exists so nobody hand-rolls invalid structure:
+`skeleton` exists so nobody hand-rolls invalid structure. It covers every
+authorable element — requirements and trace edges, but equally goals, scenarios,
+glossary terms, business rules and entities — so "never invent element shapes"
+is advice an author can actually follow:
 
 ```bash
+rqml skeleton --list                  # every kind, grouped by the section it belongs under
 rqml skeleton req --id REQ-PAY-002    # a ready-to-fill <req> with acceptance criteria
+rqml skeleton rule                    # a business rule with the boundary examples slot
 ```
+
+Standard output is the snippet and nothing else, so redirecting it into a file
+is safe; the section it belongs under goes to standard error as a hint, and
+`--json` returns it as a `section` field alongside the snippet.
 
 `matrix` is the spec-health view: one row per requirement with its status, the
 goals it satisfies, the code that implements it, the tests that verify it, and

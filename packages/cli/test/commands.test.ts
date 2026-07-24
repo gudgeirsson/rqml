@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { SKELETON_KINDS } from "@rqml/core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { runApprove } from "../src/commands/approve.js";
 import { runCheck } from "../src/commands/check.js";
@@ -200,7 +201,47 @@ describe("loop commands", () => {
 
   it("skeleton prints snippets and rejects unknown kinds", async () => {
     expect(await runSkeleton(["req"])).toBe(EXIT.OK);
+    expect(await runSkeleton(["term"])).toBe(EXIT.OK);
     await expect(runSkeleton(["nope"])).rejects.toThrow(UsageError);
+  });
+
+  it("skeleton --list names every kind with its section", async () => {
+    const out: string[] = [];
+    const orig = process.stdout.write.bind(process.stdout);
+    process.stdout.write = ((s: string | Uint8Array) => {
+      out.push(String(s));
+      return true;
+    }) as typeof process.stdout.write;
+    try {
+      expect(await runSkeleton(["--list"])).toBe(EXIT.OK);
+    } finally {
+      process.stdout.write = orig;
+    }
+    const listed = out.join("");
+    for (const kind of SKELETON_KINDS) expect(listed).toContain(kind);
+    expect(listed).toContain("catalogs/glossary");
+    expect(listed).toContain("domain/businessRules");
+  });
+
+  it("skeleton keeps stdout to the snippet alone, so a redirect stays paste-safe", async () => {
+    const out: string[] = [];
+    const orig = process.stdout.write.bind(process.stdout);
+    const origErr = process.stderr.write.bind(process.stderr);
+    process.stdout.write = ((s: string | Uint8Array) => {
+      out.push(String(s));
+      return true;
+    }) as typeof process.stdout.write;
+    process.stderr.write = (() => true) as typeof process.stderr.write;
+    try {
+      expect(await runSkeleton(["term"])).toBe(EXIT.OK);
+    } finally {
+      process.stdout.write = orig;
+      process.stderr.write = origErr;
+    }
+    // The destination hint goes to stderr; stdout is the snippet and nothing else.
+    expect(out.join("")).toBe(
+      '<term id="TERM-NAME">\n  <name>...</name>\n  <definition>...</definition>\n</term>\n',
+    );
   });
 
   it("matrix renders rows and filters by warning (CRIT-MATRIX-SURFACE)", async () => {
