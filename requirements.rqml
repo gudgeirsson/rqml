@@ -2236,6 +2236,40 @@
           </criterion>
         </acceptance>
       </req>
+      <req id="REQ-LOOP-SKELETON-COVERAGE" type="FR" title="A shape exists for every authorable element" status="draft" priority="should" appliesTo="core cli mcp">
+        <statement>
+          Skeleton generation SHALL cover every authorable element of the
+          catalogs, domain, goals and scenarios sections, in addition to the
+          requirement, trace edge, testCase and state machine kinds of
+          REQ-LOOP-SKELETON. Each kind SHALL declare the section its snippet
+          belongs under, and the CLI and MCP surfaces SHALL report that section
+          alongside the snippet and enumerate the available kinds by it.
+        </statement>
+        <rationale>
+          Agent guidance instructs agents never to invent element shapes, which
+          is only followable where a shape exists: with four kinds it forbade
+          most of the tagset without offering an alternative, and the elements
+          left uncovered were the ones agent-authored specs stopped using,
+          their content reappearing as prose in notes where check, matrix and
+          impact cannot see it. Generation is pull-based, so a kind nobody asks
+          for costs nothing, and the marginal cost of covering a section is one
+          template. The section must travel with the snippet because a reader
+          who cannot tell that a term belongs under catalogs/glossary has been
+          handed valid markup and no way to place it.
+        </rationale>
+        <acceptance>
+          <criterion id="CRIT-SKELETON-COVERAGE">
+            <given>The set of authorable elements of the catalogs, domain, goals and scenarios sections</given>
+            <when>The available skeleton kinds are enumerated</when>
+            <then>Every such element has a kind, and each kind names the section its snippet is valid in.</then>
+          </criterion>
+          <criterion id="CRIT-SKELETON-PLACEABLE">
+            <given>A snippet generated for any kind</given>
+            <when>It is inserted into the section that kind declares</when>
+            <then>The document remains valid against the XSD and passes referential integrity.</then>
+          </criterion>
+        </acceptance>
+      </req>
       <req id="REQ-LOOP-OVERVIEW" type="FR" title="Spec overview" status="approved" priority="must" appliesTo="core cli mcp">
         <statement>
           The toolchain SHALL provide an overview operation, on both the CLI and
@@ -2940,6 +2974,11 @@
     <edge id="E-SAT-AGENTS-TEMPLATE-VOCABULARY-GOAL-LLM-CONTEXT" type="satisfies" from="REQ-AGENTS-TEMPLATE-VOCABULARY" to="GOAL-LLM-CONTEXT" status="draft" createdBy="rqml"/>
     <edge id="E-IMPL-AGENTS-TEMPLATE-ELICITATION" type="implements" from="packages/schema/templates/AGENTS.md" fromKind="code" to="REQ-AGENTS-TEMPLATE-ELICITATION" status="draft" createdBy="rqml"/>
     <edge id="E-IMPL-AGENTS-TEMPLATE-VOCABULARY" type="implements" from="packages/schema/templates/AGENTS.md" fromKind="code" to="REQ-AGENTS-TEMPLATE-VOCABULARY" status="draft" createdBy="rqml"/>
+    <edge id="E-REF-LOOP-SKELETON-COVERAGE-LOOP-SKELETON" type="refines" from="REQ-LOOP-SKELETON-COVERAGE" to="REQ-LOOP-SKELETON" status="draft" createdBy="rqml"/>
+    <edge id="E-SAT-LOOP-SKELETON-COVERAGE-GOAL-LOW-CEREMONY" type="satisfies" from="REQ-LOOP-SKELETON-COVERAGE" to="GOAL-LOW-CEREMONY" status="draft" createdBy="rqml"/>
+    <edge id="E-IMPL-LOOP-SKELETON-COVERAGE" type="implements" from="packages/core/src/export/skeleton.ts" fromKind="code" to="REQ-LOOP-SKELETON-COVERAGE" status="draft" createdBy="rqml"/>
+    <edge id="E-IMPL-LOOP-SKELETON-COVERAGE-2" type="implements" from="packages/cli/src/commands/skeleton.ts" fromKind="code" to="REQ-LOOP-SKELETON-COVERAGE" status="draft" createdBy="rqml"/>
+    <edge id="E-VER-LOOP-SKELETON-COVERAGE" type="verifiedBy" from="REQ-LOOP-SKELETON-COVERAGE" to="packages/core/test/skeleton.test.ts" toKind="test" status="draft" createdBy="rqml"/>
   </trace>
 
   <!-- ============================================================= -->

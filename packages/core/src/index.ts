@@ -96,6 +96,7 @@ export {
 export {
   SKELETON_KINDS,
   skeleton,
+  skeletonSection,
   type SkeletonKind,
   type SkeletonOptions,
 } from "./export/skeleton.js";

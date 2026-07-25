@@ -32,6 +32,7 @@ import {
   saveBaseline,
   setStatus,
   skeleton,
+  skeletonSection,
   sliceToMarkdown,
   updateTraceEdge,
 } from "@rqml/core";
@@ -232,11 +233,15 @@ export const TOOLS: ToolDef[] = [
   },
   {
     name: "rqml_skeleton",
-    description: `Generate a schema-valid RQML snippet (${SKELETON_KINDS.join(", ")}).`,
+    description: `Generate a schema-valid RQML snippet for any authorable element — requirements and traces, but equally goals, scenarios, glossary terms, business rules, entities and the rest. Returns the snippet plus the section it belongs under. Reach for this instead of hand-writing markup: ${SKELETON_KINDS.join(", ")}.`,
     inputSchema: {
       type: "object",
       properties: {
-        kind: { type: "string", enum: [...SKELETON_KINDS] },
+        kind: {
+          type: "string",
+          enum: [...SKELETON_KINDS],
+          description: "The element to generate a snippet for.",
+        },
         id: { type: "string", description: "Override the snippet's root id." },
       },
       required: ["kind"],
@@ -607,7 +612,13 @@ export async function callTool(
         throw new Error(`kind must be one of: ${SKELETON_KINDS.join(", ")}`);
       }
       const id = str(args, "id");
-      return { snippet: skeleton(kind as SkeletonKind, id !== undefined ? { id } : {}) };
+      const typed = kind as SkeletonKind;
+      return {
+        snippet: skeleton(typed, id !== undefined ? { id } : {}),
+        // Where the snippet is valid — with twenty kinds this is no longer
+        // evident from the element name alone.
+        section: skeletonSection(typed),
+      };
     }
     case "rqml_link": {
       const path = str(args, "path");
