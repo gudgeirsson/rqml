@@ -1,5 +1,107 @@
 # @rqml/mcp
 
+## 0.8.0
+
+### Minor Changes
+
+- b73dcbb: Fragment scope: tell "the evidence changed" from "the file around it changed"
+
+  A drift baseline hashes the whole file a locator points at, so a routine version
+  bump in `packages/cli/package.json` failed the build on an edge whose declared
+  evidence was `#bin`. Four consecutive releases reddened the gate on the same
+  three edges, and no re-pin in a full working session caught an unintended
+  change — a gate whose red is usually noise teaches its readers to re-pin without
+  reading.
+
+  `rqml link` now records the content of a locator's `#fragment` alongside the
+  file hash, and `check` reports a file that changed around unchanged evidence as
+  `context-changed-implementation`: advisory at every level except `certified`,
+  where the whole file is the evidence an auditor reads. The JSON report and
+  `rqml_check` gain a `contextChanged` list beside `drift`.
+
+  The whole-file hash is still the detector — fragment scope can only _downgrade_
+  an alarm it already raised, never suppress one. Only `.json` fragments are
+  interpreted (a member name, `#bin`, or an RFC 6901 pointer, `#/scripts/build`);
+  TypeScript, JavaScript and XSD fragments keep whole-file evidence exactly as
+  before, and any uncertainty — an unresolvable fragment, a file that stops being
+  valid JSON, a member declared twice — is reported as drift. A locator with no
+  fragment is never narrowed, so a requirement linked to a whole manifest keeps
+  every dependency channel in scope by construction.
+
+  Existing baselines need no migration: a bare sha256 still means whole-file
+  scope, and an edge gains fragment scope the next time it is linked or refreshed.
+  Refresh only once every gate — CI, editor hooks, global installs — is on this
+  version: an older `@rqml/core` treats a fragment-scoped entry as drift rather
+  than trusting it, which is the safe direction but turns the gate red until it
+  is upgraded.
+
+  `ArtifactStatus` widens by one member, `context-changed`; consumers that switch
+  on it exhaustively will want a case for it.
+
+- 89f84c2: `skeleton` covers every authorable element, and says where each one goes
+
+  "Never invent element shapes" is the rule agent guidance gives, and with four
+  skeleton kinds it forbade most of the tagset without offering an alternative.
+  The elements left uncovered were the ones agent-authored specs stopped using —
+  their content reappearing as prose in `<notes>`, where `check`, `matrix` and
+  `impact` cannot see it.
+
+  Sixteen kinds join `req`, `edge`, `testCase` and `stateMachine`: `goal`,
+  `qgoal`, `obstacle`, `goalLink`, `scenario`, `misuseCase`, `edgeCase`, `term`,
+  `actor`, `stakeholder`, `constraint`, `policy`, `decision`, `risk`, `entity`
+  and `rule` — every authorable element of the goals, scenarios, catalogs and
+  domain sections. Generation is pull-based, so a kind nobody asks for costs
+  nothing.
+
+  Each kind now declares the section its snippet is valid in, because with twenty
+  kinds "where does this go?" stops being obvious from the element name. New
+  `skeletonSection(kind)` in core returns the parent chain (`catalogs/glossary`,
+  `domain/businessRules`, …). `rqml skeleton --list` enumerates every kind grouped
+  by destination, and an unknown kind prints the same list instead of an
+  unreadable twenty-way usage line. `rqml_skeleton` returns `section` beside
+  `snippet`.
+
+  CLI standard output is unchanged — the snippet alone, so redirecting into a file
+  stays safe. The destination goes to standard error as a hint, and `--json`
+  carries it as a field.
+
+  Existing kinds, ids and output are untouched; this is additive.
+
+### Patch Changes
+
+- 8d7a49a: Name the requirements-engineering activity, and the finding rather than the gate
+
+  The AGENTS.md template told agents to "use as much of the RQML tagset as is
+  necessary" and left it there. That supplies no occasion for reaching: the
+  element families with a CLI writer and a gate read-back get used, and the ones
+  without get replaced by prose in `<notes>`, where `check`, `matrix` and `impact`
+  cannot see it.
+
+  The template's workflow section now names the ISO/IEC/IEEE 29148 activities each
+  of the five stages carries, and its schema guidance replaces the tagset line
+  with observable triggers — a boundary number wants `<rule>`/`<examples>`, a
+  lifecycle noun wants a `<stateMachine>`, two goals in tension want a
+  `conflictsWith` goalLink, a SHALL sitting in a note wants promoting — framed as
+  signs to watch for rather than sections to fill. It states plainly that analysis
+  raises no finding at all, so a passing check is not read as evidence the
+  activity happened.
+
+  Agent-facing text now reports each finding by the artifact it names — the goal
+  no requirement satisfies, the requirement with no verification edge, the file
+  that changed after its edge was recorded — rather than by the state of the gate,
+  and describes drift as a suspect link to re-read rather than a defect. The same
+  distinction reaches `rqml validate`'s and `rqml check`'s help text and the
+  `rqml_validate` / `rqml_check` MCP descriptions: `rqml validate` performs
+  _document_ validation, and requirements validation in the 29148 sense is what a
+  person records by approving a requirement — so no passing check attests it.
+
+  Strings only. Command names, JSON keys, rule codes, exit codes and every enum
+  are unchanged.
+
+- Updated dependencies [b73dcbb]
+- Updated dependencies [89f84c2]
+  - @rqml/core@0.9.0
+
 ## 0.7.1
 
 ### Patch Changes
