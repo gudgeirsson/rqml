@@ -21,6 +21,10 @@
 /static/AGENTS.md
 /static/schema/
 
+# Build-copied from integrations/toolchain-floor.json — the single declaration
+# of the minimum @rqml/cli version integrations may rely on (REQ-TOOLCHAIN-FLOOR).
+/static/toolchain-floor.json
+
 # Misc
 .DS_Store
 .env.local
