@@ -42,6 +42,12 @@ jobs:
       - name: Docs examples match the schema
         run: node scripts/check-docs-examples.mjs
 
+      # The release re-pins baselines unattended, so the classifier deciding what
+      # it may bless on its own authority is tested like the safety boundary it
+      # is (REQ-RELEASE-REPIN).
+      - name: Release re-pin classifier
+        run: node --test scripts/repin-release-baselines.test.mjs
+
       # The declared toolchain floor is what every host integration vendors and
       # compares against. Keep it satisfiable and singly-declared.
       - name: Toolchain floor invariants

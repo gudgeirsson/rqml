@@ -1483,6 +1483,49 @@
           </criterion>
         </acceptance>
       </req>
+      <req id="REQ-RELEASE-REPIN" type="PR" title="The release re-pins the baselines it invalidates" status="approved" priority="must">
+        <statement>
+          The automated release SHALL re-pin the drift baseline of every
+          implements edge whose pinned artifact its own version bump modified,
+          in the same commit as the bump, and SHALL leave every other drifted
+          edge untouched.
+        </statement>
+        <rationale>
+          Package manifests carry implements baselines, so every version bump
+          invalidates them and turns main red on a change nobody made by hand.
+          It has been repaired manually after each of the 0.9.0, 0.9.1, 0.10.0
+          and 0.11.0 releases — four releases, four identical chores. A gate
+          that predictably goes red for a sanctioned reason trains people to
+          refresh baselines without reading them, which is the one habit that
+          makes drift detection worthless. The automation that breaks the
+          baseline is the automation that should mend it.
+        </rationale>
+        <notes>
+          Scope is the discipline here: re-pin only the artifacts the bump itself
+          touched, and only when their diff is confined to the version field and
+          internal dependency pins. A manifest that changed in any other way is a
+          change someone should read, so it stays drifted and the gate keeps
+          reporting it. craft-sync (rqml-skill ADR-0009) scopes its re-pin the
+          same way and for the same reason.
+        </notes>
+        <acceptance>
+          <criterion id="CRIT-REPIN-BUMP">
+            <given>A release that bumps versions in manifests carrying implements baselines</given>
+            <when>The Version Packages commit is produced</when>
+            <then>Those baselines are re-pinned in that same commit, and rqml check passes on it.</then>
+          </criterion>
+          <criterion id="CRIT-REPIN-SCOPED">
+            <given>Drift unrelated to the bump present at release time</given>
+            <when>The release re-pins</when>
+            <then>That drift is left untouched and still fails the gate.</then>
+          </criterion>
+          <criterion id="CRIT-REPIN-UNSANCTIONED">
+            <given>A bumped manifest whose diff changes more than the version and internal dependency pins</given>
+            <when>The release re-pins</when>
+            <then>That edge is not re-pinned, and the gate still reports it for a human to read.</then>
+          </criterion>
+        </acceptance>
+      </req>
     </reqPackage>
 
     <reqPackage id="PKG-CORE" title="Core engine (rqml-core)" ownerRef="STK-TOOLBUILDERS">
@@ -2757,6 +2800,7 @@
     <edge id="E-OFFLINE-GOAL" type="satisfies" from="REQ-CLI-OFFLINE" to="GOAL-OFFLINE-FAST" confidence="0.85"/>
     <edge id="E-CLI-VERSION-ENGINE" type="satisfies" from="REQ-CLI-VERSION" to="GOAL-REUSABLE-ENGINE" confidence="0.8"/>
     <edge id="E-TOOLCHAIN-FLOOR-ENGINE" type="satisfies" from="REQ-TOOLCHAIN-FLOOR" to="GOAL-REUSABLE-ENGINE" confidence="0.85"/>
+    <edge id="E-RELEASE-REPIN-ENFORCE" type="satisfies" from="REQ-RELEASE-REPIN" to="GOAL-ENFORCEMENT" confidence="0.8"/>
     <edge id="E-TOOLCHAIN-FLOOR-VERSION" type="dependsOn" from="REQ-TOOLCHAIN-FLOOR" to="REQ-CLI-VERSION" confidence="1"/>
     <edge id="E-DETERMINISM-QGOAL" type="satisfies" from="REQ-ENFORCE-DETERMINISM" to="QGOAL-DETERMINISTIC" confidence="0.9"/>
     <edge id="E-SPEED-QGOAL" type="satisfies" from="REQ-CLI-SPEED" to="QGOAL-CHECK-SPEED" confidence="0.8"/>
@@ -3057,6 +3101,10 @@
     <edge id="E-IMPL-CLI-VERSION" type="implements" from="packages/cli/src/index.ts#VERSION" fromKind="code" fromTitle="Version resolved from package.json" to="REQ-CLI-VERSION" status="draft" createdBy="rqml"/>
     <edge id="E-IMPL-TOOLCHAIN-FLOOR-PUBLISH" type="implements" from="apps/website/package.json#copy-assets" fromKind="config" fromTitle="Build-time copy of the floor to its stable URL" to="REQ-TOOLCHAIN-FLOOR" status="draft" createdBy="rqml"/>
     <edge id="E-VER-TOOLCHAIN-FLOOR" type="verifiedBy" from="REQ-TOOLCHAIN-FLOOR" to="scripts/check-toolchain-floor.mjs" toKind="test" toTitle="Floor invariant checks" status="draft" createdBy="rqml"/>
+    <edge id="E-IMPL-RELEASE-REPIN" type="implements" from="scripts/repin-release-baselines.mjs" fromKind="code" fromTitle="Scoped baseline re-pin after a version bump" to="REQ-RELEASE-REPIN" status="draft" createdBy="rqml"/>
+    <edge id="E-IMPL-RELEASE-REPIN-CI" type="implements" from=".github/workflows/release.yml" fromKind="ci" fromTitle="Release runs the versioning script that re-pins" to="REQ-RELEASE-REPIN" status="draft" createdBy="rqml"/>
+    <edge id="E-IMPL-RELEASE-REPIN-SCRIPT" type="implements" from="./package.json#version-packages" fromKind="config" fromTitle="version-packages bumps then re-pins" to="REQ-RELEASE-REPIN" status="draft" createdBy="rqml"/>
+    <edge id="E-VER-RELEASE-REPIN" type="verifiedBy" from="REQ-RELEASE-REPIN" to="scripts/repin-release-baselines.test.mjs" toKind="test" toTitle="Sanctioned-diff classifier tests" status="draft" createdBy="rqml"/>
   </trace>
 
   <!-- ============================================================= -->
