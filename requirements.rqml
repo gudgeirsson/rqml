@@ -1403,6 +1403,50 @@
         </statement>
         <rationale>Published schema URLs are an immutable contract for documents in the wild.</rationale>
       </req>
+      <req id="REQ-TOOLCHAIN-FLOOR" type="CR" title="Declared toolchain floor for integrations" status="approved" priority="must">
+        <statement>
+          The project SHALL declare one minimum @rqml/cli version that host
+          integrations may rely on — a single machine-readable value in a single
+          file — and SHALL publish it at its stable
+          https://rqml.org/toolchain-floor.json URL, so an integration can vendor
+          the value and re-verify it without taking a package dependency.
+        </statement>
+        <rationale>
+          The plugins consume one narrow CLI contract by design, so there is one
+          right answer to "what version does RQML need?" — and three integrations
+          each keeping their own answer is how the answers diverged in the first
+          place. Publishing it as a file rather than exporting it from a package
+          keeps it readable by integrations written in different runtimes and
+          without a build step, and lets each keep a committed copy so its own
+          check stays offline.
+        </rationale>
+        <notes>
+          The floor moves when integrations begin relying on a new capability,
+          not when a release adds one — so a new toolchain version on its own
+          never obliges anyone to upgrade. An integration MAY declare a higher
+          floor when it genuinely needs one, never a lower one. The published
+          document deliberately carries no "current" or "recommended" version:
+          publishing one would invite staleness nagging, which the integrations
+          are specified not to do.
+        </notes>
+        <acceptance>
+          <criterion id="CRIT-TOOLCHAIN-FLOOR-PUBLISHED">
+            <given>A completed documentation site build</given>
+            <when>The published toolchain-floor.json is fetched from its stable URL</when>
+            <then>It is byte-identical to the declaration in the repository.</then>
+          </criterion>
+          <criterion id="CRIT-TOOLCHAIN-FLOOR-SINGLE">
+            <given>The repository</given>
+            <when>The declared minimum is searched for</when>
+            <then>The value appears in exactly one file; every other mention is derived from it, not restated.</then>
+          </criterion>
+          <criterion id="CRIT-TOOLCHAIN-FLOOR-SANE">
+            <given>The declared minimum and the current @rqml/cli package version</given>
+            <when>They are compared</when>
+            <then>The declared minimum is less than or equal to the published CLI version.</then>
+          </criterion>
+        </acceptance>
+      </req>
       <req id="REQ-VERSION-DECOUPLE" type="CR" title="Decoupled versioning" status="approved" priority="should">
         <statement>
           The RQML spec version SHALL be versioned independently of the npm package
@@ -1912,6 +1956,33 @@
           rqml SHALL use documented, stable exit codes distinguishing success,
           validation failure, drift or coverage failure, and usage error.
         </statement>
+      </req>
+      <req id="REQ-CLI-VERSION" type="IR" title="Version output is contract" status="approved" priority="must" appliesTo="cli">
+        <statement>
+          rqml --version SHALL print the CLI's own semantic version as a single
+          stable, machine-parseable line, and that output SHALL be part of the
+          documented contract integrations may rely on, alongside the exit codes
+          and the JSON report shapes.
+        </statement>
+        <rationale>
+          Host integrations compare the installed CLI against a declared minimum
+          before trusting it (see REQ-TOOLCHAIN-FLOOR). That comparison is only
+          sound if the version output is a contract rather than an incidental
+          banner: an integration that misreads it either nags a healthy install
+          or stays silent on a broken one.
+        </rationale>
+        <acceptance>
+          <criterion id="CRIT-CLI-VERSION-PARSE">
+            <given>An installed rqml CLI</given>
+            <when>rqml --version is invoked</when>
+            <then>Standard output carries exactly one semantic version, equal to the installed package version, and the exit status is success.</then>
+          </criterion>
+          <criterion id="CRIT-CLI-VERSION-NO-PROJECT">
+            <given>A directory with no RQML document and no project of any kind</given>
+            <when>rqml --version is invoked</when>
+            <then>The version is printed and the exit status is success, so an integration can ask the version before it knows whether the project is governed.</then>
+          </criterion>
+        </acceptance>
       </req>
       <req id="REQ-CLI-SAFE-INVOCATION" type="IR" title="Help and unrecognized input never mutate" status="approved" priority="must" appliesTo="cli">
         <statement>
@@ -2684,6 +2755,9 @@
     <edge id="E-PRIM-ENFORCE" type="satisfies" from="REQ-ENFORCE-PRIMITIVES" to="GOAL-ENFORCEMENT" confidence="0.9"/>
     <edge id="E-API-ENGINE" type="satisfies" from="REQ-CORE-API" to="GOAL-REUSABLE-ENGINE" confidence="0.9"/>
     <edge id="E-OFFLINE-GOAL" type="satisfies" from="REQ-CLI-OFFLINE" to="GOAL-OFFLINE-FAST" confidence="0.85"/>
+    <edge id="E-CLI-VERSION-ENGINE" type="satisfies" from="REQ-CLI-VERSION" to="GOAL-REUSABLE-ENGINE" confidence="0.8"/>
+    <edge id="E-TOOLCHAIN-FLOOR-ENGINE" type="satisfies" from="REQ-TOOLCHAIN-FLOOR" to="GOAL-REUSABLE-ENGINE" confidence="0.85"/>
+    <edge id="E-TOOLCHAIN-FLOOR-VERSION" type="dependsOn" from="REQ-TOOLCHAIN-FLOOR" to="REQ-CLI-VERSION" confidence="1"/>
     <edge id="E-DETERMINISM-QGOAL" type="satisfies" from="REQ-ENFORCE-DETERMINISM" to="QGOAL-DETERMINISTIC" confidence="0.9"/>
     <edge id="E-SPEED-QGOAL" type="satisfies" from="REQ-CLI-SPEED" to="QGOAL-CHECK-SPEED" confidence="0.8"/>
 
@@ -2979,6 +3053,10 @@
     <edge id="E-IMPL-LOOP-SKELETON-COVERAGE" type="implements" from="packages/core/src/export/skeleton.ts" fromKind="code" to="REQ-LOOP-SKELETON-COVERAGE" status="draft" createdBy="rqml"/>
     <edge id="E-IMPL-LOOP-SKELETON-COVERAGE-2" type="implements" from="packages/cli/src/commands/skeleton.ts" fromKind="code" to="REQ-LOOP-SKELETON-COVERAGE" status="draft" createdBy="rqml"/>
     <edge id="E-VER-LOOP-SKELETON-COVERAGE" type="verifiedBy" from="REQ-LOOP-SKELETON-COVERAGE" to="packages/core/test/skeleton.test.ts" toKind="test" status="draft" createdBy="rqml"/>
+    <edge id="E-IMPL-TOOLCHAIN-FLOOR" type="implements" from="integrations/toolchain-floor.json" fromKind="code" fromTitle="Canonical declared toolchain floor" to="REQ-TOOLCHAIN-FLOOR" status="draft" createdBy="rqml"/>
+    <edge id="E-IMPL-CLI-VERSION" type="implements" from="packages/cli/src/index.ts#VERSION" fromKind="code" fromTitle="Version resolved from package.json" to="REQ-CLI-VERSION" status="draft" createdBy="rqml"/>
+    <edge id="E-IMPL-TOOLCHAIN-FLOOR-PUBLISH" type="implements" from="apps/website/package.json#copy-assets" fromKind="config" fromTitle="Build-time copy of the floor to its stable URL" to="REQ-TOOLCHAIN-FLOOR" status="draft" createdBy="rqml"/>
+    <edge id="E-VER-TOOLCHAIN-FLOOR" type="verifiedBy" from="REQ-TOOLCHAIN-FLOOR" to="scripts/check-toolchain-floor.mjs" toKind="test" toTitle="Floor invariant checks" status="draft" createdBy="rqml"/>
   </trace>
 
   <!-- ============================================================= -->

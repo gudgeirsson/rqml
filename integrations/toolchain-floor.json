@@ -1,0 +1,6 @@
+{
+  "$comment": "Canonical minimum @rqml/cli version that RQML host integrations may rely on. Source of truth: rqml-org/rqml (integrations/toolchain-floor.json), published at https://rqml.org/toolchain-floor.json. Integrations vendor a committed copy so their own check stays offline, and re-verify it against the published URL in CI. Never restate this value — derive it. Governed by REQ-TOOLCHAIN-FLOOR.",
+  "canonicalVersion": 1,
+  "cliFloor": "0.9.1",
+  "reason": "Integrations rely on migrate, all-type link, lint, check --workspace, and spec discovery. 0.9.1 rather than 0.9.0 because on 0.9.0 `rqml migrate --help` rewrote the discovered spec instead of printing help."
+}

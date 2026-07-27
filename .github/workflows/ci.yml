@@ -42,6 +42,11 @@ jobs:
       - name: Docs examples match the schema
         run: node scripts/check-docs-examples.mjs
 
+      # The declared toolchain floor is what every host integration vendors and
+      # compares against. Keep it satisfiable and singly-declared.
+      - name: Toolchain floor invariants
+        run: node scripts/check-toolchain-floor.mjs
+
       # Dogfood: this repo is specified in requirements.rqml; the same gate
       # we ship is the gate we pass. Validates the spec, checks coverage, and
       # drift-checks every implements edge against .rqml/baseline.json.

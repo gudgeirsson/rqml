@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "copy-assets": "cp ../../packages/schema/templates/AGENTS.md static/AGENTS.md && mkdir -p static/schema && cp ../../packages/schema/versions/*/rqml-*.xsd static/schema/",
+    "copy-assets": "cp ../../packages/schema/templates/AGENTS.md static/AGENTS.md && cp ../../integrations/toolchain-floor.json static/toolchain-floor.json && mkdir -p static/schema && cp ../../packages/schema/versions/*/rqml-*.xsd static/schema/",
     "start": "npm run copy-assets && docusaurus start",
     "build": "npm run copy-assets && docusaurus build",
     "swizzle": "docusaurus swizzle",
