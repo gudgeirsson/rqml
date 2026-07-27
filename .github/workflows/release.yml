@@ -28,10 +28,21 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # The re-pin step shells out to the built CLI, so the versioning command
+      # needs dist/ present (REQ-RELEASE-REPIN).
+      - run: pnpm build
+
       # Opens/updates a "Version Packages" PR, or publishes @rqml/schema,
       # @rqml/core, rqml, and @rqml/mcp to npm when a release PR is merged.
+      #
+      # `version` overrides the default `changeset version` with the root script,
+      # which bumps and then re-pins the drift baselines the bump invalidates —
+      # so the Version Packages PR is green instead of landing drift on main
+      # (REQ-RELEASE-REPIN). Scoped: it re-pins only manifests this bump touched,
+      # and only when their diff is confined to versions and @rqml/* pins.
       - uses: changesets/action@v1
         with:
+          version: pnpm version-packages
           publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
