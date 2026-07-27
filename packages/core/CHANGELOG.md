@@ -1,5 +1,77 @@
 # @rqml/core
 
+## 0.9.0
+
+### Minor Changes
+
+- b73dcbb: Fragment scope: tell "the evidence changed" from "the file around it changed"
+
+  A drift baseline hashes the whole file a locator points at, so a routine version
+  bump in `packages/cli/package.json` failed the build on an edge whose declared
+  evidence was `#bin`. Four consecutive releases reddened the gate on the same
+  three edges, and no re-pin in a full working session caught an unintended
+  change — a gate whose red is usually noise teaches its readers to re-pin without
+  reading.
+
+  `rqml link` now records the content of a locator's `#fragment` alongside the
+  file hash, and `check` reports a file that changed around unchanged evidence as
+  `context-changed-implementation`: advisory at every level except `certified`,
+  where the whole file is the evidence an auditor reads. The JSON report and
+  `rqml_check` gain a `contextChanged` list beside `drift`.
+
+  The whole-file hash is still the detector — fragment scope can only _downgrade_
+  an alarm it already raised, never suppress one. Only `.json` fragments are
+  interpreted (a member name, `#bin`, or an RFC 6901 pointer, `#/scripts/build`);
+  TypeScript, JavaScript and XSD fragments keep whole-file evidence exactly as
+  before, and any uncertainty — an unresolvable fragment, a file that stops being
+  valid JSON, a member declared twice — is reported as drift. A locator with no
+  fragment is never narrowed, so a requirement linked to a whole manifest keeps
+  every dependency channel in scope by construction.
+
+  Existing baselines need no migration: a bare sha256 still means whole-file
+  scope, and an edge gains fragment scope the next time it is linked or refreshed.
+  Refresh only once every gate — CI, editor hooks, global installs — is on this
+  version: an older `@rqml/core` treats a fragment-scoped entry as drift rather
+  than trusting it, which is the safe direction but turns the gate red until it
+  is upgraded.
+
+  `ArtifactStatus` widens by one member, `context-changed`; consumers that switch
+  on it exhaustively will want a case for it.
+
+- 89f84c2: `skeleton` covers every authorable element, and says where each one goes
+
+  "Never invent element shapes" is the rule agent guidance gives, and with four
+  skeleton kinds it forbade most of the tagset without offering an alternative.
+  The elements left uncovered were the ones agent-authored specs stopped using —
+  their content reappearing as prose in `<notes>`, where `check`, `matrix` and
+  `impact` cannot see it.
+
+  Sixteen kinds join `req`, `edge`, `testCase` and `stateMachine`: `goal`,
+  `qgoal`, `obstacle`, `goalLink`, `scenario`, `misuseCase`, `edgeCase`, `term`,
+  `actor`, `stakeholder`, `constraint`, `policy`, `decision`, `risk`, `entity`
+  and `rule` — every authorable element of the goals, scenarios, catalogs and
+  domain sections. Generation is pull-based, so a kind nobody asks for costs
+  nothing.
+
+  Each kind now declares the section its snippet is valid in, because with twenty
+  kinds "where does this go?" stops being obvious from the element name. New
+  `skeletonSection(kind)` in core returns the parent chain (`catalogs/glossary`,
+  `domain/businessRules`, …). `rqml skeleton --list` enumerates every kind grouped
+  by destination, and an unknown kind prints the same list instead of an
+  unreadable twenty-way usage line. `rqml_skeleton` returns `section` beside
+  `snippet`.
+
+  CLI standard output is unchanged — the snippet alone, so redirecting into a file
+  stays safe. The destination goes to standard error as a hint, and `--json`
+  carries it as a field.
+
+  Existing kinds, ids and output are untouched; this is additive.
+
+### Patch Changes
+
+- Updated dependencies [8d7a49a]
+  - @rqml/schema@0.2.2
+
 ## 0.8.0
 
 ### Minor Changes
